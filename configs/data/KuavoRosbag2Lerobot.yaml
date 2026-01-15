@@ -13,9 +13,9 @@ hydra:  # Hydra config directory, for parameter checking only
 # lerobot repository: https://github.com/huggingface/lerobot
 
 rosbag:
-  rosbag_dir: /path/to/your/rosbag # rosbag file directory
+  rosbag_dir: /workspace/datasets/kuavo_data_challenge_icra/task1_first600 # rosbag file directory
   num_used: null # Quantities of rosbag used (will randomly choose the selected amount of files). null denotes all rosbags
-  lerobot_dir: /your/path/to/your/lerobotdata/  # Lerobot output directory after conversion. The lerobot folder will be created and all converted data will be saved here
+  lerobot_dir: /workspace/datasets/lerobotdata/  # Lerobot output directory after conversion. The lerobot folder will be created and all converted data will be saved here
 
 dataset:
   #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
