@@ -37,8 +37,8 @@ training:
     max_training_step: null
 
     # resume training
-    resume: false
-    resume_timestamp: "run_20251118_144927"  # If enabled, it will pull the last epoch from outputs/train/<task>/<method>/<resume_timestamp> to continue training
+    resume: true 
+    resume_timestamp: "run_20260115_162104"  # If enabled, it will pull the last epoch from outputs/train/<task>/<method>/<resume_timestamp> to continue training
 
     scheduler_name: cosine  # The learning rate tuner name. Takes effect only if the scheduler is not included in the policy config
     # Otherwise, the policy's built-in tuner will be used. Related parameters will also be listed in the policy section below.

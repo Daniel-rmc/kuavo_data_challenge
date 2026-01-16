@@ -352,12 +352,10 @@ def main(cfg: DictConfig):
             drop_last=cfg.training.drop_last,
             prefetch_factor=2 if cfg.training.num_workers > 0 else None,
         )
-
-        epoch_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{cfg.training.max_epoch}")
-
-        
+        # 通过单行覆盖方式实时展示当前 epoch 进度，避免刷屏
         total_loss = 0.0
-        for batch in epoch_bar:
+        num_batches = max(1, len(dataloader))
+        for batch_idx, batch in enumerate(dataloader, start=1):
             batch = preprocessor(batch)  # will normalize and put batch to device
             with make_autocast(amp_enabled):
                 loss, _ = policy.forward(batch)
@@ -382,10 +380,28 @@ def main(cfg: DictConfig):
             if steps % cfg.training.log_freq == 0:
                 writer.add_scalar("train/loss", scaled_loss.item(), steps)
                 writer.add_scalar("train/lr", lr_scheduler.get_last_lr()[0], steps)
-                epoch_bar.set_postfix(loss=f"{scaled_loss.item():.3f}", step=steps, lr=lr_scheduler.get_last_lr()[0])
+
+                # 单行实时进度：使用 "\r" 覆盖当前行，不换行
+                progress = batch_idx / num_batches * 100.0
+                print(
+                    f"Epoch {epoch+1}/{cfg.training.max_epoch} "
+                    f"[{batch_idx}/{num_batches} {progress:5.1f}%] "
+                    f"loss: {scaled_loss.item():.3f}, step: {steps}, "
+                    f"lr: {lr_scheduler.get_last_lr()[0]:.3e}",
+                    end="\r",
+                    flush=True,
+                )
 
             steps += 1
             total_loss += scaled_loss.item()
+
+        # 每个 epoch 结束后，先换行再打印一条整洁的汇总信息
+        print()
+        avg_loss = total_loss / num_batches
+        print(
+            f"Epoch {epoch+1}/{cfg.training.max_epoch} DONE - avg_loss: {avg_loss:.3f}, "
+            f"step: {steps}, lr: {lr_scheduler.get_last_lr()[0]:.3e}"
+        )
         
         # Update best loss
         if total_loss < best_loss:
