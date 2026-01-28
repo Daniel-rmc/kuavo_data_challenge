@@ -98,8 +98,8 @@ policy_name: diffusion  # Policy type. Supports diffusion and act
 policy:
     _target_: kuavo_train.wrapper.policy.diffusion.DiffusionConfigWrapper.CustomDiffusionConfigWrapper  # Used for instantiation
     n_obs_steps: 2
-    horizon: 16
-    n_action_steps: 8
+    horizon: 9
+    n_action_steps: 6
     drop_n_last_frames: 7  # Drop the last n frames
 
     normalization_mapping: # RGB is equivalent to VISUAL type. diffusion also supports depth data. These two parameters are used to set the normalization method.
