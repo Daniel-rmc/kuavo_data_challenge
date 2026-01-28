@@ -11,7 +11,7 @@ method: "act"  # Custom method name
 timestamp: ${now:%Y%m%d_%H%M%S}  # Auto-obtained timestamp
 # The training parameters will be saved at outputs/train/<task>/<method>/<timestamp>
 repoid: "lerobot/${task}"  # Newer versions of lerobot require this, for lerobot reference only. Not actually used elsewhere.
-root: "/workspace/datasets/lerobotdata/task1"  # Locally converted lerobot dataset directory
+root: "/workspace/datasets/lerobot_data/task1/lerobot"  # Locally converted lerobot dataset directory
 # root: null  # If using huggingface datasets instead of local dataset, please specify in task, such as pusht, aloha_sim_insertion_human.
 # Uncomment and leave that to null in that case. This will then use their cloud downloads
 
@@ -37,7 +37,7 @@ training:
     max_training_step: null
 
     # resume training
-    resume: true 
+    resume: false  
     resume_timestamp: "run_20260115_162104"  # If enabled, it will pull the last epoch from outputs/train/<task>/<method>/<resume_timestamp> to continue training
 
     scheduler_name: cosine  # The learning rate tuner name. Takes effect only if the scheduler is not included in the policy config
