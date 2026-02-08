@@ -1,0 +1,172 @@
+hydra:  # Hydra config directory, for parameter checking only
+  run:
+    dir: ./outputs/train_hydra_save/singlerun/${now:%Y%m%d_%H%M%S}  # Single run root dir
+  sweep:
+    dir: ./outputs/train_hydra_save/multirun/${now:%Y%m%d_%H%M%S}  # sweep root dir
+    subdir: ${hydra:job.override_dirname}
+
+
+task: "task1"  # Custom task name
+method: "vlat"  # Custom method name - Vision-Language-Action Transformer
+timestamp: ${now:%Y%m%d_%H%M%S}  # Auto-obtained timestamp
+repoid: "lerobot/${task}"  # For lerobot reference only
+root: "/workspace/datasets/lerobot_data/task1/lerobot"  # Local dataset directory
+
+# Training Configurations
+training:
+    output_directory: "outputs/train/${task}/${method}"  # Training output path
+    seed: 2025  # Random seed for reproducibility
+    max_epoch: 500  # Maximum training epochs
+    
+    save_freq_epoch: 10  # Save checkpoint every 10 epochs
+    log_freq: 1  # Log every iteration
+    device: "cuda"  # Training device
+    accumulation_steps: 1  # Gradient accumulation steps
+    ema_power: 0.75  # EMA (not currently used)
+    
+    batch_size: 32  # Batch size
+    num_workers: 8  # DataLoader workers
+    drop_last: False  # Whether to drop last incomplete batch
+    
+    max_training_step: null  # Auto-calculated from max_epoch if null
+    
+    # Resume training
+    resume: false
+    resume_timestamp: "run_20260128_000000"
+    
+    scheduler_name: cosine  # Learning rate scheduler
+    scheduler_warmup_steps: 500  # Warmup steps
+    
+    # Data augmentation configuration
+    RGB_Augmenter:
+      enable: True
+      max_num_transforms: 1
+      random_order: True
+      tfs:
+        notransform:
+          weight: 3.0
+          type: "Identity"
+          kwargs: {}
+        brightness:
+          weight: 1.0
+          type: "ColorJitter"
+          kwargs: {"brightness": [0.5, 1.5]}
+        contrast:
+          weight: 1.0
+          type: "ColorJitter"
+          kwargs: {"contrast": [0.5, 1.5]}
+        saturation:
+          weight: 1.0
+          type: "ColorJitter"
+          kwargs: {"saturation": [0.5, 1.5]}
+        hue:
+          weight: 1.0
+          type: "ColorJitter"
+          kwargs: {"hue": [-0.05, 0.05]}
+        sharpness:
+          weight: 1.0
+          type: "SharpnessJitter"
+          kwargs: {"sharpness": [0.5, 1.5]}
+        random_mask:
+          weight: 1.0
+          type: RandomMask
+          kwargs:
+            mask_size: [0.1, 0.1]
+        random_border_cutout:
+          weight: 1.0
+          type: RandomBorderCutout
+          kwargs:
+            cut_ratio: 0.15
+        gaussian_noise:
+          weight: 1.0
+          type: GaussianNoise
+          kwargs:
+            mean: 0.0
+            std: 0.05
+        gamma_correction:
+          weight: 1.0
+          type: GammaCorrection
+          kwargs:
+            gamma: [0.5, 2.0]
+
+
+policy_name: vlat  # Policy type: Vision-Language-Action Transformer
+
+# VLAT Policy Configuration
+policy:
+    _target_: kuavo_train.wrapper.policy.vlat.VLATConfigWrapper.CustomVLATConfigWrapper
+    
+    # Observation configuration
+    n_obs_steps: 2  # Number of observation timesteps
+    chunk_size: 100  # Action chunk size
+    n_action_steps: 1  # Actions executed per prediction
+    
+    # Vision Transformer configuration
+    vision_backbone: vit_small_patch16_224  # ViT model from timm
+    pretrained_backbone_weights: "IMAGENET1K_V1"  # Pretrained weights
+    patch_size: 16  # ViT patch size
+    image_size: [224, 224]  # Input image size [H, W]
+    vit_embed_dim: 384  # ViT-Small embedding dimension
+    
+    # Perceiver fusion configuration
+    n_query_tokens: 64  # Number of learnable query tokens
+    fusion_dim: 512  # Fusion hidden dimension
+    fusion_heads: 8  # Number of attention heads
+    fusion_layers: 2  # Number of Perceiver blocks
+    fusion_dropout: 0.1  # Dropout rate in fusion
+    
+    # Temporal modeling configuration
+    temporal_layers: 4  # Number of temporal transformer layers
+    temporal_heads: 8  # Number of attention heads
+    temporal_dim: 512  # Temporal feature dimension
+    temporal_dropout: 0.1  # Dropout in temporal transformer
+    use_causal_temporal_attention: false  # Use causal attention
+    
+    # Action prediction configuration
+    decoder_layers: 4  # Number of decoder layers
+    decoder_heads: 8  # Number of attention heads
+    decoder_dim: 512  # Decoder dimension
+    decoder_dropout: 0.1  # Decoder dropout
+    
+    # Training configuration
+    use_uncertainty: true  # Enable uncertainty estimation
+    lambda_smooth: 0.1  # Weight for action smoothness loss
+    lambda_contrast: 0.01  # Weight for contrastive loss (future)
+    lambda_uncertainty: 0.001  # Weight for uncertainty regularization
+    
+    # Optimizer configuration
+    optimizer_lr: 5e-5  # Learning rate
+    optimizer_betas: [0.9, 0.999]  # Adam betas
+    optimizer_eps: 1.0e-08  # Adam epsilon
+    optimizer_weight_decay: 1e-4  # Weight decay
+    
+    # Scheduler
+    scheduler_name: cosine
+    
+    # Normalization mapping
+    normalization_mapping:
+      RGB: 
+        _target_: lerobot.configs.types.NormalizationMode
+        value: MEAN_STD
+      DEPTH: 
+        _target_: lerobot.configs.types.NormalizationMode
+        value: MIN_MAX
+      STATE:
+        _target_: lerobot.configs.types.NormalizationMode
+        value: MEAN_STD
+      ACTION:
+        _target_: lerobot.configs.types.NormalizationMode
+        value: MEAN_STD
+    
+    # Mixed precision training
+    use_amp: False
+    
+    # Custom settings
+    custom:
+      # Depth support (disabled for initial testing)
+      use_depth: false
+      depth_backbone: vit_small_patch16_224
+      use_separate_depth_encoder_per_camera: false
+      
+      # RGB encoder
+      use_separate_rgb_encoder_per_camera: false
