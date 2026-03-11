@@ -1,11 +1,16 @@
 import lerobot_patches.custom_patches  # Ensure custom patches are applied, DON'T REMOVE THIS LINE!
 from lerobot.configs.policies import PolicyFeature
 from typing import Any
+import sys
 
 import hydra
 from omegaconf import DictConfig, OmegaConf, ListConfig
 from pathlib import Path
 from functools import partial
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 import torch
 from torch.utils.tensorboard import SummaryWriter
@@ -25,12 +30,13 @@ from lerobot.utils.random_utils import set_seed
 from lerobot.policies.factory import make_pre_post_processors
 from kuavo_train.wrapper.policy.diffusion.DiffusionPolicyWrapper import CustomDiffusionPolicyWrapper
 from kuavo_train.wrapper.policy.act.ACTPolicyWrapper import CustomACTPolicyWrapper
+from kuavo_train.wrapper.policy.vlat.VLATPolicyWrapper import CustomVLATPolicyWrapper
 from kuavo_train.wrapper.dataset.LeRobotDatasetWrapper import CustomLeRobotDataset
 from kuavo_train.utils.augmenter import crop_image, resize_image, DeterministicAugmenterColor
 from kuavo_train.utils.utils import save_rng_state, load_rng_state
 from lerobot.policies.act.modeling_act import ACTPolicy
 from diffusers.optimization import get_scheduler
-from utils.transforms import ImageTransforms, ImageTransformsConfig, ImageTransformConfig
+from kuavo_train.utils.transforms import ImageTransforms, ImageTransformsConfig, ImageTransformConfig
 
 from functools import partial
 from contextlib import nullcontext
@@ -110,6 +116,7 @@ def build_policy(name, policy_cfg):
     policy = {
         "diffusion": CustomDiffusionPolicyWrapper,
         "act": CustomACTPolicyWrapper,
+        "vlat": CustomVLATPolicyWrapper,
     }[name](policy_cfg)
     return policy
 

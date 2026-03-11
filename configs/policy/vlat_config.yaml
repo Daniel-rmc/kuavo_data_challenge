@@ -9,8 +9,8 @@ hydra:  # Hydra config directory, for parameter checking only
 task: "task1"  # Custom task name
 method: "vlat"  # Custom method name - Vision-Language-Action Transformer
 timestamp: ${now:%Y%m%d_%H%M%S}  # Auto-obtained timestamp
-repoid: "lerobot/${task}"  # For lerobot reference only
-root: "/workspace/datasets/lerobot_data/task1/lerobot"  # Local dataset directory
+repoid: "lerobot/${task}"  # Local-first: only used when metadata is missing and Hub sync is triggered
+root: "/workspace/datasets/ICRA/lerobotdata/task1"  # Existing local dataset directory
 
 # Training Configurations
 training:
@@ -25,7 +25,7 @@ training:
     ema_power: 0.75  # EMA (not currently used)
     
     batch_size: 32  # Batch size
-    num_workers: 8  # DataLoader workers
+    num_workers: 16  # DataLoader workers
     drop_last: False  # Whether to drop last incomplete batch
     
     max_training_step: null  # Auto-calculated from max_epoch if null
