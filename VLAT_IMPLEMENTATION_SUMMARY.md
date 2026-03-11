@@ -176,7 +176,7 @@ docs/
 ### 1. 验证安装
 ```bash
 cd /workspace/kuavo_data_challenge
-python test_vlat_simple.py
+python test_vlat_policy.py
 ```
 
 ### 2. 开始训练
